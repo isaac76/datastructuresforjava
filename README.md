@@ -50,7 +50,7 @@ THREADED-MERGE-SORT(A, p, r, threshold)
 **Performance Results (1M elements, 12 cores):**
 - Sequential: 125ms
 - ThreadedMergeSort: 36ms
-- **Speedup: 3.47x**
+- **Speedup:  3. 47x**
 
 #### 3. VirtualThreadedMergeSort (Virtual Threads - Java 21)
 Parallel implementation using Java's virtual threads (Project Loom) with structured concurrency.
@@ -58,7 +58,7 @@ Parallel implementation using Java's virtual threads (Project Loom) with structu
 - **Time Complexity**: O(n log n)
 - **Space Complexity**: O(n)
 - **Best for**: High concurrency scenarios, simpler code than Fork/Join
-- **Threshold**: 10,000 elements (switches to sequential below this)
+- **Threshold**:  10,000 elements (switches to sequential below this)
 - **Virtual Threads**: Lightweight (~1KB), JVM-managed, millions can run concurrently
 
 **Pseudocode:**
@@ -72,14 +72,14 @@ VIRTUAL-THREADED-MERGE-SORT(A, p, r, threshold)
       left_task = scope.FORK(() -> VIRTUAL-THREADED-MERGE-SORT(A, p, q, threshold))
       right_task = scope.FORK(() -> VIRTUAL-THREADED-MERGE-SORT(A, q+1, r, threshold))
       scope.JOIN()
-      scope.THROW-IF-FAILED()
+      scope. THROW-IF-FAILED()
       MERGE(A, p, q, r)
 ```
 
 **Performance Results (1M elements, 12 cores):**
 - Sequential: 225ms
 - VirtualThreadedMergeSort: 49ms
-- **Speedup: 4.59x**
+- **Speedup:  4.59x**
 
 ### Performance Comparison
 
@@ -92,20 +92,155 @@ VIRTUAL-THREADED-MERGE-SORT(A, p, r, threshold)
 **Key Findings:**
 - Both parallel implementations provide significant speedup over sequential
 - Virtual threads offer simpler, more readable code than Fork/Join
-- Optimal threshold: 5,000-10,000 elements to balance parallelism vs overhead
+- Optimal threshold:  5,000-10,000 elements to balance parallelism vs overhead
 - Below 200K elements, overhead dominates and sequential may be faster
 
 ## Data Structures
 
+### Binary Tree
+
+A generic binary tree implementation with support for various tree traversal algorithms. 
+
+**Structure:**
+- **Time Complexity (Insert/Remove)**: O(1) for direct node operations
+- **Space Complexity**: O(n) where n is the number of nodes
+- **Best for**: Building custom tree structures, hierarchical data representation
+- **Operations**: `insertLeft(node, data)`, `insertRight(node, data)`, `removeLeft(node)`, `removeRight(node)`, `mergeTree(merge, left, right, data)`
+
+**Basic Operations Pseudocode:**
+```
+TREE-INSERT-LEFT(T, node, data)
+  newNode = CREATE-NODE(data)
+  if node == null
+      T.root = newNode
+  else
+      node.left = newNode
+  T.size++
+
+TREE-INSERT-RIGHT(T, node, data)
+  newNode = CREATE-NODE(data)
+  if node == null
+      T.root = newNode
+  else
+      node.right = newNode
+  T.size++
+
+TREE-MERGE(merge, left, right, data)
+  merge.root = CREATE-NODE(data)
+  merge.root.left = left.root
+  merge.root.right = right.root
+  merge.size = left.size + right.size + 1
+```
+
+#### Tree Traversal Algorithms
+
+The BinaryTree class implements four standard traversal algorithms:
+
+##### 1. In-Order Traversal (Left, Root, Right)
+
+Visits nodes in ascending order for binary search trees.
+
+- **Time Complexity**: O(n)
+- **Space Complexity**:  O(h) where h is tree height (recursion stack), O(n) for result list
+- **Best for**: Getting sorted sequence from BST, expression tree evaluation
+- **Order**: Left subtree → Root → Right subtree
+
+**Pseudocode:**
+```
+IN-ORDER-TRAVERSAL(node, result)
+  if node == null
+      return
+  IN-ORDER-TRAVERSAL(node.left, result)
+  result.ADD(node.data)
+  IN-ORDER-TRAVERSAL(node.right, result)
+```
+
+##### 2. Pre-Order Traversal (Root, Left, Right)
+
+Visits root before its children.
+
+- **Time Complexity**: O(n)
+- **Space Complexity**: O(h) where h is tree height (recursion stack), O(n) for result list
+- **Best for**: Copying trees, prefix expression evaluation, serialization
+- **Order**: Root → Left subtree → Right subtree
+
+**Pseudocode:**
+```
+PRE-ORDER-TRAVERSAL(node, result)
+  if node == null
+      return
+  result.ADD(node.data)
+  PRE-ORDER-TRAVERSAL(node.left, result)
+  PRE-ORDER-TRAVERSAL(node.right, result)
+```
+
+##### 3. Post-Order Traversal (Left, Right, Root)
+
+Visits children before root.
+
+- **Time Complexity**: O(n)
+- **Space Complexity**: O(h) where h is tree height (recursion stack), O(n) for result list
+- **Best for**: Deleting trees, postfix expression evaluation, calculating tree properties
+- **Order**: Left subtree → Right subtree → Root
+
+**Pseudocode:**
+```
+POST-ORDER-TRAVERSAL(node, result)
+  if node == null
+      return
+  POST-ORDER-TRAVERSAL(node.left, result)
+  POST-ORDER-TRAVERSAL(node.right, result)
+  result.ADD(node.data)
+```
+
+##### 4. Level-Order Traversal (Breadth-First)
+
+Visits nodes level by level from top to bottom.
+
+- **Time Complexity**: O(n)
+- **Space Complexity**: O(w) where w is maximum width of tree (queue size), O(n) for result list
+- **Best for**: Finding shortest path, level-by-level processing, serialization
+- **Order**: All nodes at depth 0, then depth 1, then depth 2, etc.
+
+**Pseudocode:**
+```
+LEVEL-ORDER-TRAVERSAL(root)
+  if root == null
+      return empty list
+  result = CREATE-LIST()
+  queue = CREATE-QUEUE()
+  queue.ENQUEUE(root)
+  
+  while queue is not empty
+      current = queue.DEQUEUE()
+      result.ADD(current.data)
+      
+      if current. left != null
+          queue. ENQUEUE(current.left)
+      if current.right != null
+          queue.ENQUEUE(current.right)
+  
+  return result
+```
+
+**Traversal Comparison:**
+
+| Traversal | Order | Recursion | Best Use Case |
+|-----------|-------|-----------|---------------|
+| In-Order | L-Root-R | Yes | BST sorting, expression evaluation |
+| Pre-Order | Root-L-R | Yes | Tree copying, serialization |
+| Post-Order | L-R-Root | Yes | Tree deletion, calculating sizes |
+| Level-Order | By levels | No (uses queue) | Shortest paths, level processing |
+
 ### Hash Tables
 
-Three implementations demonstrating chaining for collision resolution and thread-safe concurrent access:
+Three implementations demonstrating chaining for collision resolution and thread-safe concurrent access: 
 
 #### 1. ChainedHashTable<T> (Set-like Collection)
 Hash table storing values with separate chaining for collision resolution.
 
 - **Time Complexity**: O(1) average for insert/lookup/remove, O(n) worst case
-- **Space Complexity**: O(n + m) where n is elements, m is buckets
+- **Space Complexity**:  O(n + m) where n is elements, m is buckets
 - **Best for**: Set operations, membership testing
 - **Operations**: `insert(T)`, `lookup(T)`, `remove(T)`
 
@@ -129,7 +264,7 @@ HASH-REMOVE(T, data)
 ```
 
 #### 2. ChainedHashMap<K, V> (Key-Value Map)
-True hash map storing key-value pairs using Entry objects.
+True hash map storing key-value pairs using Entry objects. 
 
 - **Time Complexity**: O(1) average for put/get/remove, O(n) worst case
 - **Space Complexity**: O(n + m) where n is entries, m is buckets
@@ -154,7 +289,7 @@ HASH-PUT(M, key, value)
 
 HASH-GET(M, key)
   index = HASH(key) mod M.buckets
-  entry = LIST-SEARCH(M.table[index], key)
+  entry = LIST-SEARCH(M. table[index], key)
   if entry != null
       return entry.value
   return null
@@ -173,7 +308,7 @@ Thread-safe hash table with fine-grained locking for high concurrency.
 - **Locking Strategy**: One ReadWriteLock per bucket
 - **Concurrency**: Operations on different buckets execute in parallel
 - **Read Operations**: Multiple threads can read same bucket simultaneously
-- **Write Operations**: Exclusive access per bucket, synchronized size counter
+- **Write Operations**:  Exclusive access per bucket, synchronized size counter
 
 **Pseudocode:**
 ```
@@ -181,7 +316,7 @@ THREADED-HASH-INSERT(T, data)
   index = HASH(data) mod T.buckets
   ACQUIRE-WRITE-LOCK(T.locks[index])
   try
-      LIST-INSERT(T.table[index], data)
+      LIST-INSERT(T. table[index], data)
       SYNCHRONIZED(T)
           T.size++
   finally
@@ -199,7 +334,7 @@ THREADED-HASH-REMOVE(T, data)
   index = HASH(data) mod T.buckets
   ACQUIRE-WRITE-LOCK(T.locks[index])
   try
-      if LIST-REMOVE(T.table[index], data)
+      if LIST-REMOVE(T. table[index], data)
           SYNCHRONIZED(T)
               T.size--
           return true
